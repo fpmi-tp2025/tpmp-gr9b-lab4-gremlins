@@ -1,0 +1,48 @@
+name: Test and Coverage
+
+on:
+  push:
+    branches: [ main, master, develop, feature/*, test/* ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake g++ libsqlite3-dev lcov
+    
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON -DCODE_COVERAGE=ON
+      
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config Debug
+      
+    - name: Run tests
+      working-directory: ${{github.workspace}}/build
+      run: ctest -C Debug --output-on-failure
+      
+    - name: Generate coverage report
+      working-directory: ${{github.workspace}}/build
+      run: make coverage
+        
+    # Create a safe branch name for artifacts (replacing '/' with '-')
+    - name: Set safe branch name
+      id: safe-branch-name
+      run: |
+        SAFE_BRANCH_NAME=$(echo "${{ github.ref_name }}" | sed 's/\//-/g')
+        echo "SAFE_BRANCH_NAME=$SAFE_BRANCH_NAME" >> $GITHUB_ENV
+        
+    # Upload coverage report as an artifact with safe branch name
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report-${{ env.SAFE_BRANCH_NAME }}
+        path: ${{github.workspace}}/build/coverage_report/
+        retention-days: 14
