@@ -31,12 +31,6 @@ jobs:
     - name: Generate coverage report
       working-directory: ${{github.workspace}}/build
       run: make coverage
-      
-    - name: Upload coverage report
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-report
-        path: ${{github.workspace}}/build/coverage_report/
         
     # Create a safe branch name for artifacts (replacing '/' with '-')
     - name: Set safe branch name
@@ -52,13 +46,3 @@ jobs:
         name: coverage-report-${{ env.SAFE_BRANCH_NAME }}
         path: ${{github.workspace}}/build/coverage_report/
         retention-days: 14
-
-    # Add coverage summary to job output
-    - name: Create coverage summary
-      run: |
-        echo "## Coverage Summary" >> $GITHUB_STEP_SUMMARY
-        echo "| Category | Coverage |" >> $GITHUB_STEP_SUMMARY
-        echo "| -------- | -------- |" >> $GITHUB_STEP_SUMMARY
-        grep -A 2 "Overall coverage rate" ${{github.workspace}}/build/coverage_report/index.html | \
-        grep -o "[0-9.]*%" | \
-        xargs -I{} echo "| Total | {} |" >> $GITHUB_STEP_SUMMARY
