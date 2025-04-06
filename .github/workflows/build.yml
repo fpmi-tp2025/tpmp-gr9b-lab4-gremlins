@@ -25,7 +25,7 @@ jobs:
       run: cmake --build ${{github.workspace}}/build --config Release
       
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: music-store-app
         path: ${{github.workspace}}/build/music_store_app
